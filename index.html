@@ -15,14 +15,77 @@
     <!-- Import Babel để trình duyệt hiểu được mã JSX của React -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-[#060a16] m-0 p-0">
+<body class="bg-[#060a16] m-0 p-0 overflow-hidden">
     <!-- Nơi React sẽ hiển thị ứng dụng -->
     <div id="root"></div>
 
     <!-- Đoạn mã React của chúng ta -->
     <script type="text/babel">
-        // Lấy các hàm cần thiết từ React
         const { useState, useRef, useEffect } = React;
+
+        // =====================================================================
+        // COMPONENT CON MẮT FIGMA (HOẠT ẢNH CHUẨN XÁC 3 TRẠNG THÁI)
+        // =====================================================================
+        const EyeIcon = ({ isOpen, toggle }) => {
+            const [eyeState, setEyeState] = useState('nham');
+
+            // Quản lý Animation của con mắt: CHỈ LẶP 3 TRẠNG THÁI (mo1, mo2, mo3)
+            useEffect(() => {
+                if (!isOpen) {
+                    setEyeState('nham');
+                    return;
+                }
+
+                let isRunning = true;
+                const runSequence = async () => {
+                    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+
+                    while(isRunning) {
+                        // Trạng thái 1: Nhìn thẳng
+                        setEyeState('mo1'); 
+                        await wait(1500);
+                        if(!isRunning) break;
+
+                        // Trạng thái 2: Liếc trái (Thời gian lâu hơn)
+                        setEyeState('mo2'); 
+                        await wait(2000);
+                        if(!isRunning) break;
+
+                        // Trạng thái 3: Liếc phải LUÔN (Bỏ qua nhìn thẳng ở giữa, thời gian lâu hơn)
+                        setEyeState('mo3'); 
+                        await wait(2000);
+                    }
+                };
+                runSequence();
+                return () => { isRunning = false; };
+            }, [isOpen]);
+
+            return (
+                <div 
+                    onClick={toggle}
+                    className="absolute top-4 left-4 z-50 cursor-pointer shadow-lg transition-transform hover:scale-110 flex items-center justify-center bg-[#020C20]"
+                    style={{ width: '56px', height: '56px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.15)', overflow: 'hidden' }}
+                    title={isOpen ? 'Tắt vùng khả thi' : 'Hiện vùng khả thi'}
+                >
+                    {/* Thu nhỏ tỷ lệ Figma design cho vừa vặn với nút */}
+                    <div style={{ transform: 'scale(0.33)', position: 'relative', width: '158px', height: '165px' }}>
+                        <div className={`eye-base state-${eyeState}`}>
+                            <div className="open-1">
+                                <div className="ellipse-9"></div>
+                                <div className="ellipse-4"></div>
+                                <div className="frame-11">
+                                    <div className="frame-12">
+                                        <div className="ellipse-7"></div>
+                                        <div className="polygon-3"></div>
+                                    </div>
+                                    <div className="ellipse-8"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         function App() {
             // Thêm State cho màn hình Intro và Fullscreen
@@ -38,6 +101,12 @@
             const [points, setPoints] = useState([]);
             // Trạng thái lưu toạ độ chuột trực tiếp
             const [hoverPoint, setHoverPoint] = useState(null);
+            
+            // Bật tắt vùng khả thi
+            const [showFeasible, setShowFeasible] = useState(false);
+
+            // State lưu "Đường Ngân Sách Gốc" (Baseline) để so sánh sự dịch chuyển
+            const [baseline, setBaseline] = useState(null);
 
             const svgRef = useRef(null);
 
@@ -80,7 +149,7 @@
                 return () => document.removeEventListener('keydown', handleKeyDown);
             }, []);
 
-            // Hàm bật/tắt Fullscreen bằng CSS (Giả lập Fullscreen để tránh lỗi Permissions Policy)
+            // Hàm bật/tắt Fullscreen bằng CSS
             const toggleFullscreen = () => {
                 setIsFullscreen(!isFullscreen);
             };
@@ -137,22 +206,13 @@
                         className="h-screen w-screen bg-[#020C20] flex items-center justify-center text-white overflow-hidden relative cursor-pointer"
                         style={{ fontFamily: "'Roboto Slab', serif" }}
                     >
-                        {/* Đảm bảo Font Roboto Slab được load ngay từ màn hình Intro */}
-                        <style dangerouslySetInnerHTML={{__html: `
-                            @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500&display=swap');
-                        `}} />
-
-                        {/* Tiêu đề chính */}
+                        <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500&display=swap');`}} />
                         <div className="text-center text-[48px] leading-[64px] text-white uppercase px-4">
                             BIỂU ĐỒ TƯƠNG TÁC MINH HOẠ<br/>ĐƯỜNG NGÂN SÁCH
                         </div>
-
-                        {/* Chữ ký */}
                         <div className="absolute bottom-8 right-8 lg:bottom-[39px] lg:right-[189px] text-[15px] leading-[132.42%] text-white opacity-[0.51]">
                             by Tuấn Anh - 2511110048
                         </div>
-
-                        {/* Hướng dẫn click nhỏ (nhấp nháy mờ) */}
                         <div className="absolute bottom-8 text-[13px] opacity-20 animate-pulse tracking-wider">
                             * Nhấp chuột để bắt đầu
                         </div>
@@ -177,28 +237,95 @@
                         )}
                     </button>
 
-                    {/* CSS Tuỳ chỉnh cho thanh trượt */}
+                    {/* Nút Bật/Tắt Vùng Khả thi Custom Eye (Figma Design) */}
+                    <EyeIcon isOpen={showFeasible} toggle={() => setShowFeasible(!showFeasible)} />
+
+                    {/* CSS TỔNG HỢP: Tuỳ chỉnh thanh trượt & MÃ FIGMA CHUẨN XÁC CHO CON MẮT */}
                     <style dangerouslySetInnerHTML={{__html: `
-                        .custom-slider {
-                            -webkit-appearance: none;
-                            background: transparent;
-                            width: 100%;
-                        }
+                        /* THANH TRƯỢT */
+                        .custom-slider { -webkit-appearance: none; background: transparent; width: 100%; }
                         .custom-slider:focus { outline: none; }
-                        .custom-slider::-webkit-slider-runnable-track {
-                            width: 100%; height: 1px; cursor: pointer; background: #475569;
-                        }
-                        .custom-slider::-webkit-slider-thumb {
-                            height: 16px; width: 16px; border-radius: 50%; background: #060a16;
-                            border: 4px solid #ffffff; cursor: pointer; -webkit-appearance: none; margin-top: -7.5px;
-                        }
+                        .custom-slider::-webkit-slider-runnable-track { width: 100%; height: 1px; cursor: pointer; background: #475569; }
+                        .custom-slider::-webkit-slider-thumb { height: 16px; width: 16px; border-radius: 50%; background: #060a16; border: 4px solid #ffffff; cursor: pointer; -webkit-appearance: none; margin-top: -7.5px; }
+
+                        /* ============ CON MẮT FIGMA (CSS HOẠT ẢNH 3 TRẠNG THÁI LẶP) ============ */
+                        .eye-base { position: relative; width: 158px; height: 165px; background: transparent; }
+                        /* Mọi chi tiết sẽ transition nhịp nhàng trong 0.4s */
+                        .eye-base * { transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); box-sizing: border-box; position: absolute; }
+                        
+                        /* Lông mày sẽ được bo cong hoàn hảo */
+                        .f7-l8, .f7-l15, .f7-l10, .f8-l8, .f8-l15, .f8-l10 { border-radius: 10px; }
+
+                        /* Cấu trúc lõi - Định dạng cơ bản (Trạng thái Mở 1) */
+                        .open-1 { width: 111px; height: 111px; left: calc(50% - 111px/2 + 0.5px); top: calc(50% - 111px/2); }
+                        .ellipse-9 { width: 111px; height: 111px; left: 0px; top: 0px; border: 2.22px solid #81AAE9; border-radius: 50%; }
+                        .ellipse-4 { width: 100px; height: 100px; left: 6px; top: 5px; background: #88A4CF; border-radius: 50%; }
+                        
+                        .frame-7 { width: 32px; height: 15.66px; left: 39px; top: 21px; transform: rotate(0deg); }
+                        .f7-l8 { width: 10px; height: 0px; left: calc(50% - 10px/2 - 11px); top: 8px; border: 4px solid #020C20; transform: rotate(50deg); }
+                        .f7-l15 { width: 10px; height: 0px; left: calc(50% - 10px/2 + 14.57px); top: 8px; border: 4px solid #020C20; transform: rotate(130deg); }
+                        .f7-l10 { width: 14px; height: 0px; left: calc(50% - 14px/2 + 9px); top: 0px; border: 4px solid #020C20; transform: rotate(-90deg); }
+
+                        .frame-8 { width: 32px; height: 15.66px; left: 39px; top: calc(50% - 15.66px/2 + 27.33px); transform: rotate(-180deg); }
+                        .f8-l8 { width: 10px; height: 0px; left: calc(50% - 10px/2 + 14.57px); top: 0px; border: 4px solid #020C20; transform: rotate(-130deg); }
+                        .f8-l15 { width: 10px; height: 0px; left: calc(50% - 10px/2 - 11px); top: 0px; border: 4px solid #020C20; transform: rotate(-50deg); }
+                        .f8-l10 { width: 14px; height: 0px; left: calc(50% - 14px/2 + 5px); top: 1.66px; border: 4px solid #020C20; transform: rotate(90deg); }
+
+                        .frame-11 { width: 54px; height: 31.96px; left: 27px; top: 40px; transform: rotate(0deg); }
+                        .frame-12 { width: 24px; height: 22px; left: 16px; top: 5px; transform: rotate(0deg); }
+                        .ellipse-7 { width: 22px; height: 22px; left: calc(50% - 22px/2 - 1px); top: calc(50% - 22px/2); background: #020C20; border-radius: 50%; transform: rotate(0deg); }
+                        .polygon-3 { width: 9px; height: 9px; left: 15px; top: 2px; background: #88A4CF; border-radius: 1px; transform: rotate(0deg); opacity: 1; }
+                        .ellipse-8 { width: 54px; height: 31.96px; left: calc(50% - 54px/2); top: calc(50% - 31.96px/2); border: 4px solid #020C20; border-radius: 50%; transform: rotate(0deg); }
+
+                        /* --- TRẠNG THÁI NHẮM MẮT (Khi tắt vùng khả thi) --- */
+                        .state-nham .open-1 { left: calc(50% - 111px/2 - 0.5px); }
+                        .state-nham .ellipse-9 { border-width: 14px; }
+                        .state-nham .ellipse-4 { background: #020C20; }
+                        .state-nham .frame-7 { top: calc(50% - 15.66px/2 + 0.33px); }
+                        .state-nham .frame-8 { top: calc(50% - 15.66px/2 + 0.67px); }
+                        .state-nham .ellipse-7 { width: 14px; height: 14px; left: calc(50% - 14px/2 - 1px); top: calc(50% - 14px/2); background: #88A4CF; }
+                        .state-nham .polygon-3 { opacity: 0; }
+                        .state-nham .ellipse-8 { width: 65px; height: 38.47px; left: calc(50% - 65px/2 + 1px); top: calc(50% - 38.47px/2); border: 8.42593px solid #88A4CF; }
+
+                        /* --- TRẠNG THÁI LIẾC TRÁI (MO 2) --- */
+                        .state-mo2 .frame-7 { left: 17.36px; top: 14.44px; transform: rotate(-18deg); }
+                        .state-mo2 .f7-l8 { left: calc(50% - 10px/2 - 8.53px); top: 17.5px; transform: rotate(32deg); }
+                        .state-mo2 .f7-l15 { top: 7.61px; left: calc(50% - 10px/2 + 18.16px); transform: rotate(112deg); }
+                        .state-mo2 .f7-l10 { left: calc(50% - 14px/2 + 8.12px); top: 4.33px; transform: rotate(-108deg); }
+                        
+                        .state-mo2 .frame-8 { left: 19.58px; top: calc(50% - 15.66px/2 + 17.69px); transform: rotate(-166deg); }
+                        .state-mo2 .f8-l8 { left: calc(50% - 10px/2 + 11.19px); top: 7.87px; transform: rotate(-102deg); }
+                        .state-mo2 .f8-l15 { left: calc(50% - 10px/2 - 13.58px); top: 3.64px; transform: rotate(-36deg); }
+                        .state-mo2 .f8-l10 { left: calc(50% - 14px/2 - 2.01px); top: 5.43px; transform: rotate(113deg); }
+                        
+                        .state-mo2 .frame-11 { left: 21.71px; top: 33.71px; transform: rotate(5deg); }
+                        .state-mo2 .frame-12 { left: 7.41px; top: 5.59px; transform: rotate(5deg); }
+                        .state-mo2 .ellipse-7 { transform: rotate(5deg); }
+                        .state-mo2 .polygon-3 { left: 15.9px; top: 3.3px; transform: rotate(5deg); }
+                        .state-mo2 .ellipse-8 { transform: rotate(5deg); }
+
+                        /* --- TRẠNG THÁI LIẾC PHẢI (MO 3) --- */
+                        .state-mo3 .frame-7 { width: 38.31px; height: 20.17px; left: 60.74px; top: 16.59px; transform: rotate(25deg); }
+                        .state-mo3 .f7-l8 { width: 11.97px; left: calc(50% - 11.97px/2 - 8.69px); top: 8.68px; border-width: 4.78816px; transform: rotate(75deg); }
+                        .state-mo3 .f7-l15 { width: 11.97px; left: calc(50% - 11.97px/2 + 15.18px); top: 24.87px; border-width: 4.78816px; transform: rotate(155deg); }
+                        .state-mo3 .f7-l10 { width: 16.76px; left: calc(50% - 16.76px/2 + 10.2px); top: 9.11px; border-width: 4.78816px; transform: rotate(-65deg); }
+                        
+                        .state-mo3 .frame-8 { left: 58px; top: calc(50% - 15.66px/2 + 30.33px); transform: rotate(-199deg); } /* Đã được đổi góc để không quay vòng 360 độ */
+                        .state-mo3 .f8-l8 { left: calc(50% - 10px/2 + 13.18px); top: 2.09px; transform: rotate(-149deg); }
+                        .state-mo3 .f8-l15 { left: calc(50% - 10px/2 - 8.51px); top: 8.33px; transform: rotate(-69deg); }
+                        .state-mo3 .f8-l10 { left: calc(50% - 14px/2 + 4.78px); top: 7.43px; transform: rotate(71deg); }
+                        
+                        .state-mo3 .frame-11 { left: 40.04px; top: 41.4px; transform: rotate(8deg); }
+                        .state-mo3 .frame-12 { left: 28.42px; top: 8.85px; transform: rotate(8deg); }
+                        .state-mo3 .ellipse-7 { transform: rotate(8deg); }
+                        .state-mo3 .polygon-3 { left: 14.27px; top: 4.78px; transform: rotate(8deg); }
+                        .state-mo3 .ellipse-8 { transform: rotate(8deg); }
                     `}} />
 
                     {/* Khu vực 1: Phương trình Đường Ngân Sách ĐỘNG */}
-                    <div className="border border-white/60 rounded-[1.25rem] px-8 py-3 text-xl flex items-center justify-center gap-4 shadow-lg bg-[#060a16] flex-shrink-0 z-10">
+                    <div className="border border-white/60 rounded-[1.25rem] px-8 py-3 text-xl flex items-center justify-center gap-4 shadow-lg bg-[#060a16] flex-shrink-0 z-10 mt-2">
                         <span>Y = -</span>
                         <div className="flex flex-col items-center text-lg font-mono text-[#93A3C7] font-bold">
-                            {/* Dùng toFixed(1) để giữ chuẩn 1 số thập phân ở phương trình */}
                             <span className="border-b border-[#93A3C7] px-2 leading-tight pb-0.5">{priceX.toFixed(1)}</span>
                             <span className="leading-tight pt-0.5">{priceY.toFixed(1)}</span>
                         </div>
@@ -210,7 +337,7 @@
                     </div>
 
                     {/* Khu vực 2: Thanh trượt & Biểu đồ */}
-                    <div className="flex flex-col md:flex-row justify-center items-center w-full max-w-5xl gap-8 lg:gap-16 flex-shrink-0">
+                    <div className="flex flex-col md:flex-row justify-center items-center w-full max-w-5xl gap-8 lg:gap-16 flex-shrink-0 mt-4">
                         
                         {/* Cột trái: Bảng điều khiển thanh trượt dọc */}
                         <div className="flex flex-col gap-6 w-full max-w-[240px]">
@@ -233,7 +360,6 @@
                                         {(priceX < 10 ? '0' : '') + priceX.toFixed(1)}
                                     </span>
                                 </div>
-                                {/* Đổi min thành 1, giữ step 0.1 để nhận số thập phân */}
                                 <input type="range" className="custom-slider" min="1" max="20" step="0.1" value={priceX} onChange={(e)=>setPriceX(Number(e.target.value))} />
                             </div>
 
@@ -245,13 +371,20 @@
                                         {(priceY < 10 ? '0' : '') + priceY.toFixed(1)}
                                     </span>
                                 </div>
-                                {/* Đổi min thành 1, giữ step 0.1 để nhận số thập phân */}
                                 <input type="range" className="custom-slider" min="1" max="20" step="0.1" value={priceY} onChange={(e)=>setPriceY(Number(e.target.value))} />
                             </div>
+
+                            {/* Nút Lưu Mốc So Sánh (Baseline) */}
+                            <button 
+                                onClick={() => setBaseline(baseline ? null : { income, priceX, priceY })}
+                                className={`mt-2 py-2 px-4 rounded-xl border transition-all font-sans text-sm font-medium ${baseline ? 'bg-red-500/20 border-red-500/50 text-red-300 hover:bg-red-500/30' : 'bg-white/5 border-white/20 hover:bg-white/10 text-gray-300'}`}
+                            >
+                                {baseline ? '🗑 Bỏ ghim mốc so sánh' : '📌 Ghim mốc này để so sánh'}
+                            </button>
                         </div>
 
                         {/* Cột phải: Vùng chứa Biểu đồ */}
-                        <div className="w-full max-w-[640px] bg-[#93A3C7] rounded-[2rem] py-6 px-6 shadow-2xl relative select-none flex justify-center items-center overflow-hidden">
+                        <div className="w-full max-w-[640px] bg-[#88A4CF] rounded-[2rem] py-6 px-6 shadow-2xl relative select-none flex justify-center items-center overflow-hidden">
                             <svg 
                                 ref={svgRef}
                                 viewBox={`0 0 ${width} ${height}`} 
@@ -271,31 +404,35 @@
                                     
                                     <rect x={0} y={-chartH - 20} width={chartW + 20} height={chartH + 20} fill="transparent" />
 
-                                    {/* --- THÊM LƯỚI TỌA ĐỘ 1x1 MỜ MỜ VÀO NỀN --- */}
+                                    {/* LƯỚI TỌA ĐỘ 1x1 MỜ MÀU 020C20 VÀO NỀN */}
                                     {Array.from({length: maxVal}, (_, i) => i + 1).map(val => (
                                         <g key={`grid-${val}`}>
-                                            {/* Lưới dọc */}
-                                            <line x1={val * scaleX} y1={0} x2={val * scaleX} y2={-chartH - 20} stroke="#000" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.15" />
-                                            {/* Lưới ngang */}
-                                            <line x1={0} y1={-val * scaleY} x2={chartW + 20} y2={-val * scaleY} stroke="#000" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.15" />
+                                            <line x1={val * scaleX} y1={0} x2={val * scaleX} y2={-chartH - 20} stroke="#020C20" strokeWidth="0.8" opacity="0.15" />
+                                            <line x1={0} y1={-val * scaleY} x2={chartW + 20} y2={-val * scaleY} stroke="#020C20" strokeWidth="0.8" opacity="0.15" />
                                         </g>
                                     ))}
+
+                                    {/* Vùng khả thi (Ẩn/Hiện bằng Toggle) */}
+                                    <polygon 
+                                        points={`0,0 0,${-yIntercept * scaleY} ${xIntercept * scaleX},0`}
+                                        fill="#4B8EF2"
+                                        opacity={showFeasible ? "1" : "0"}
+                                        style={{ transition: 'opacity 0.4s ease-in-out' }}
+                                    />
 
                                     {/* Trục X & Y */}
                                     <line x1={-3} y1={0} x2={chartW + 20} y2={0} stroke="#000" strokeWidth="4" markerEnd="url(#arrow)" />
                                     <line x1={0} y1={3} x2={0} y2={-chartH - 20} stroke="#000" strokeWidth="4" markerEnd="url(#arrow)" />
 
-                                    {/* Mốc toạ độ (Ticks) 0, 4, 8... tới 32 (length: 9, step: 4) */}
+                                    {/* Mốc toạ độ (Ticks) 0, 4, 8... tới 32 */}
                                     {Array.from({length: 9}, (_, i) => i * 4).map(val => (
                                         <g key={`tick-${val}`}>
-                                            {/* Trục X */}
                                             {val > 0 && (
                                                 <>
                                                     <line x1={val * scaleX} y1={0} x2={val * scaleX} y2={5} stroke="#000" strokeWidth="2" />
                                                     <text x={val * scaleX} y={20} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle">{val}</text>
                                                 </>
                                             )}
-                                            {/* Trục Y */}
                                             {val > 0 && (
                                                 <>
                                                     <line x1={0} y1={-val * scaleY} x2={-5} y2={-val * scaleY} stroke="#000" strokeWidth="2" />
@@ -307,71 +444,73 @@
                                     {/* Điểm gốc 0 */}
                                     <text x={-10} y={18} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="end">0</text>
 
-                                    {/* Đường Ngân Sách */}
-                                    <line 
-                                        x1={0} y1={-yIntercept * scaleY} 
-                                        x2={xIntercept * scaleX} y2={0} 
-                                        stroke="#000" strokeWidth="5" strokeLinecap="round" 
-                                    />
-                                    <line 
-                                        x1={0} y1={-yIntercept * scaleY} 
-                                        x2={xIntercept * scaleX} y2={0} 
-                                        stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" 
-                                    />
+                                    {/* Đường mốc so sánh (Baseline) */}
+                                    {baseline && (
+                                        <g>
+                                            <line 
+                                                x1={0} y1={-(baseline.income / baseline.priceY) * scaleY} 
+                                                x2={(baseline.income / baseline.priceX) * scaleX} y2={0} 
+                                                stroke="#334155" strokeWidth="3" strokeDasharray="8 6" opacity="0.6" strokeLinecap="round" 
+                                            />
+                                            <text 
+                                                x={(baseline.income / baseline.priceX) * scaleX - 10} 
+                                                y={-10} 
+                                                fill="#334155" fontSize="11" fontWeight="bold" fontFamily="sans-serif" textAnchor="end" opacity="0.8"
+                                            >
+                                                (Mốc cũ)
+                                            </text>
+                                        </g>
+                                    )}
 
-                                    {/* THÊM VÙNG NHẬN DIỆN CHUỘT (HIT-BOX) ĐỂ ĐỔI CON TRỎ THÀNH BÀN TAY */}
-                                    <line 
-                                        x1={0} y1={-yIntercept * scaleY} 
-                                        x2={xIntercept * scaleX} y2={0} 
-                                        stroke="transparent" strokeWidth="20" strokeLinecap="round" 
-                                        className="cursor-pointer"
-                                    />
+                                    {/* Nhãn giao điểm */}
+                                    <text x={xIntercept * scaleX} y={-10} fill="#020C20" fontSize="11" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle" opacity="0.6">I/Px</text>
+                                    <text x={15} y={-yIntercept * scaleY} fill="#020C20" fontSize="11" fontWeight="bold" fontFamily="sans-serif" opacity="0.6">I/Py</text>
+
+                                    {/* Đường Ngân Sách hiện tại */}
+                                    <line x1={0} y1={-yIntercept * scaleY} x2={xIntercept * scaleX} y2={0} stroke="#000" strokeWidth="5" strokeLinecap="round" />
+                                    <line x1={0} y1={-yIntercept * scaleY} x2={xIntercept * scaleX} y2={0} stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />
 
                                     <circle cx={0} cy={-yIntercept * scaleY} r="5" fill="#93A3C7" stroke="#000" strokeWidth="2" />
                                     <circle cx={xIntercept * scaleX} cy={0} r="5" fill="#93A3C7" stroke="#000" strokeWidth="2" />
 
-                                    {/* Điểm toạ độ người dùng đã ghim (Click) */}
-                                    {points.map(p => (
-                                        <g key={p.id} onClick={(e) => handleRemovePoint(e, p.id)} className="cursor-pointer">
-                                            <line x1={p.x * scaleX} y1={0} x2={p.x * scaleX} y2={-p.y * scaleY} stroke="#020C20" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.3" />
-                                            <line x1={0} y1={-p.y * scaleY} x2={p.x * scaleX} y2={-p.y * scaleY} stroke="#020C20" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.3" />
-                                            <circle 
-                                                cx={p.x * scaleX} 
-                                                cy={-p.y * scaleY} 
-                                                r={6} 
-                                                fill="#020C20" 
-                                                stroke="#FFFFFF" 
-                                                strokeWidth="2" 
-                                                className="transition-all hover:stroke-[3.5px]"
-                                            />
-                                            <rect 
-                                                x={p.x * scaleX + 10} y={-p.y * scaleY - 24} 
-                                                width={90} height={24} rx={4} fill="#060a16" opacity="0.9" style={{ pointerEvents: 'none' }}
-                                            />
-                                            <text 
-                                                x={p.x * scaleX + 55} y={-p.y * scaleY - 8} 
-                                                fill="#fff" fontSize="12" fontFamily="monospace" textAnchor="middle" style={{ pointerEvents: 'none' }}
-                                            >
-                                                ({p.x.toFixed(1)}, {p.y.toFixed(1)})
-                                            </text>
-                                        </g>
-                                    ))}
+                                    {/* Điểm toạ độ người dùng đã ghim */}
+                                    {points.map(p => {
+                                        const cost = p.x * priceX + p.y * priceY;
+                                        const diff = cost - income;
+                                        let statusColor = "#fff";
+                                        let statusMsg = "";
+                                        
+                                        if (Math.abs(diff) < 0.15) { 
+                                            statusColor = "#10b981"; 
+                                            statusMsg = "Hết I";
+                                        } else if (diff < 0) {
+                                            statusColor = "#f59e0b"; 
+                                            statusMsg = `Dư ${Math.abs(diff).toFixed(1)}`;
+                                        } else {
+                                            statusColor = "#ef4444"; 
+                                            statusMsg = `Thiếu ${Math.abs(diff).toFixed(1)}`;
+                                        }
 
-                                    {/* Điểm hover theo vị trí chuột (Trực tiếp) */}
+                                        return (
+                                            <g key={p.id} onClick={(e) => handleRemovePoint(e, p.id)} className="cursor-pointer group">
+                                                <line x1={p.x * scaleX} y1={0} x2={p.x * scaleX} y2={-p.y * scaleY} stroke="#020C20" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.3" />
+                                                <line x1={0} y1={-p.y * scaleY} x2={p.x * scaleX} y2={-p.y * scaleY} stroke="#020C20" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.3" />
+                                                <circle cx={p.x * scaleX} cy={-p.y * scaleY} r={6} fill="#020C20" stroke={statusColor} strokeWidth="2.5" className="transition-all group-hover:stroke-[4px]" />
+                                                <rect x={p.x * scaleX + 10} y={-p.y * scaleY - 38} width={100} height={36} rx={6} fill="#060a16" opacity="0.95" style={{ pointerEvents: 'none' }} />
+                                                <text x={p.x * scaleX + 60} y={-p.y * scaleY - 22} fill="#fff" fontSize="12" fontFamily="monospace" textAnchor="middle" style={{ pointerEvents: 'none' }}>({p.x.toFixed(1)}, {p.y.toFixed(1)})</text>
+                                                <text x={p.x * scaleX + 60} y={-p.y * scaleY - 8} fill={statusColor} fontSize="11" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle" style={{ pointerEvents: 'none' }}>{statusMsg}</text>
+                                            </g>
+                                        );
+                                    })}
+
+                                    {/* Điểm hover theo vị trí chuột */}
                                     {hoverPoint && (
                                         <g style={{ pointerEvents: 'none' }}>
-                                            {/* Đường gióng ngang dọc */}
                                             <line x1={hoverPoint.x * scaleX} y1={0} x2={hoverPoint.x * scaleX} y2={-hoverPoint.y * scaleY} stroke="#ffffff" strokeWidth="1" strokeDasharray="3 3" opacity="0.8" />
                                             <line x1={0} y1={-hoverPoint.y * scaleY} x2={hoverPoint.x * scaleX} y2={-hoverPoint.y * scaleY} stroke="#ffffff" strokeWidth="1" strokeDasharray="3 3" opacity="0.8" />
-                                            
-                                            {/* Điểm chấm ảo */}
                                             <circle cx={hoverPoint.x * scaleX} cy={-hoverPoint.y * scaleY} r="5" fill="#ffffff" opacity="0.9" />
-                                            
-                                            {/* Chữ hiển thị */}
                                             <rect x={hoverPoint.x * scaleX + 10} y={-hoverPoint.y * scaleY - 24} width="90" height="24" rx="4" fill="#ffffff" opacity="0.95" />
-                                            <text x={hoverPoint.x * scaleX + 55} y={-hoverPoint.y * scaleY - 8} fill="#060a16" fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-                                                ({hoverPoint.x.toFixed(1)}, {hoverPoint.y.toFixed(1)})
-                                            </text>
+                                            <text x={hoverPoint.x * scaleX + 55} y={-hoverPoint.y * scaleY - 8} fill="#060a16" fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">({hoverPoint.x.toFixed(1)}, {hoverPoint.y.toFixed(1)})</text>
                                         </g>
                                     )}
                                 </g>
@@ -380,7 +519,7 @@
                     </div>
 
                     {/* Khu vực 3: Góc dưới (Tỷ lệ và các khái niệm) */}
-                    <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-[800px] gap-8 flex-shrink-0 z-10">
+                    <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-[800px] gap-8 flex-shrink-0 z-10 mt-2">
                         <div className="flex items-center gap-4 text-xl font-medium">
                             <div className="flex flex-col items-center text-lg">
                                 <span className="border-b border-white px-2 leading-tight pb-0.5">Px</span>
@@ -404,8 +543,11 @@
                         </div>
                     </div>
 
-                    <div className="text-xs text-gray-500 font-sans tracking-wide">
-                        * Di chuột lên đồ thị để dò toạ độ trực tiếp. Click để ghim. Click lại vào điểm đã ghim để xoá.
+                    {/* Hộp giải nghĩa được thu nhỏ lại cho vừa vặn màn hình */}
+                    <div className="flex items-center justify-center w-[95%] max-w-[600px] border-[1.5px] border-[#D9D9D9] rounded-[16px] px-4 py-3 mt-4 mb-2">
+                        <p className="font-['Roboto_Slab'] text-[16px] md:text-[20px] text-white text-center leading-[140%] tracking-normal">
+                            Với thu nhập là <span className="text-[#81AAE9] font-medium">{income}</span>, bạn có thể mua tối đa <span className="text-[#81AAE9] font-medium">{Number(xIntercept.toFixed(1))}</span> hộp X hoặc <span className="text-[#81AAE9] font-medium">{Number(yIntercept.toFixed(1))}</span> bánh Y.
+                        </p>
                     </div>
                 </div>
             );
