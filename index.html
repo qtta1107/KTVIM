@@ -61,21 +61,22 @@
                 <div 
                     onClick={toggle}
                     className="cursor-pointer shadow-lg transition-transform hover:scale-110 flex items-center justify-center bg-[#020C20]"
-                    style={{ width: '56px', height: '56px', borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.25)', overflow: 'hidden' }}
+                    // KÍCH THƯỚC Ô CHỨA LÀ 64px VÀ DÙNG BORDER LÀM VIỀN NGOÀI DÀY 4PX
+                    style={{ width: '64px', height: '64px', borderRadius: '50%', border: '4px solid #88A4CF', overflow: 'hidden' }}
                     title={isOpen ? 'Tắt vùng khả thi' : 'Hiện vùng khả thi'}
                 >
-                    {/* SVG CON MẮT CHUẨN THIẾT KẾ FIGMA - ĐÃ KHỬ RĂNG CƯA */}
-                    <svg viewBox="0 0 100 100" shapeRendering="geometricPrecision" className={`eye-svg state-${eyeState}`} style={{ width: '48px', height: '48px' }}>
+                    {/* SVG CON MẮT (KÍCH THƯỚC MẮT GIỮ NGUYÊN TUYỆT ĐỐI 51px) */}
+                    <svg viewBox="0 0 100 100" shapeRendering="geometricPrecision" className={`eye-svg state-${eyeState}`} style={{ width: '51px', height: '51px' }}>
                         <defs>
-                            {/* Mask (Mặt nạ) để cắt góc con ngươi 1 cách cực kỳ sắc nét, tuyệt đối không bị lem */}
+                            {/* Mask (Mặt nạ) để cắt góc con ngươi 1 cách cực kỳ sắc nét */}
                             <mask id="pupilCutout">
                                 <rect x="0" y="0" width="100" height="100" fill="white" />
                                 <polygon points="50,50 65,50 65,35" fill="black" />
                             </mask>
                         </defs>
-
-                        {/* Vòng tròn nền ngoài */}
-                        <circle cx="50" cy="50" r="45" fill="#88A4CF" stroke="#020C20" strokeWidth="6" />
+                        
+                        {/* VÒNG TRÒN NỀN BÊN TRONG (Đã tăng r từ 38 lên 48 để hình tròn phình to sát viền ngoài) */}
+                        <circle cx="50" cy="50" r="48" fill="#88A4CF" />
                         
                         {/* Cụm tia sáng (Rays) */}
                         <g className="rays" stroke="#020C20" strokeWidth="6" strokeLinecap="round">
@@ -91,12 +92,11 @@
 
                         {/* Cụm Mắt (Khung + Con ngươi) */}
                         <g className="eye-group">
-                            {/* Khung mắt hình quả hạnh nhân (Đã bo góc mềm mại 2 bên bằng strokeLinejoin) */}
+                            {/* Khung mắt hình quả hạnh nhân */}
                             <path className="eye-frame" d="M 20 50 Q 50 20 80 50 Q 50 80 20 50 Z" fill="#88A4CF" stroke="#020C20" strokeWidth="6" strokeLinejoin="round" strokeLinecap="round" />
                             
                             {/* Con ngươi */}
                             <g className="pupil-group">
-                                {/* Con ngươi bị cắt góc tam giác sạch sẽ nhờ mặt nạ Mask */}
                                 <circle cx="50" cy="50" r="12" fill="#020C20" mask="url(#pupilCutout)" />
                             </g>
                         </g>
@@ -113,12 +113,13 @@
                 <div 
                     onClick={toggle}
                     className="cursor-pointer shadow-lg transition-transform hover:scale-110 flex flex-col items-center justify-center gap-[6px] bg-[#88A4CF]"
-                    style={{ width: '56px', height: '56px', borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.25)' }}
+                    // Đồng bộ viền nút này lên 4px để 2 nút cân xứng hoàn toàn
+                    style={{ width: '64px', height: '64px', borderRadius: '50%', border: '4px solid rgba(255,255,255,0.25)' }}
                     title="Hướng dẫn sử dụng"
                 >
-                    <div style={{ width: '28px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
-                    <div style={{ width: '28px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
-                    <div style={{ width: '28px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
+                    <div style={{ width: '32px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
+                    <div style={{ width: '32px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
+                    <div style={{ width: '32px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
                 </div>
             );
         };
@@ -252,7 +253,7 @@
 
                         /* NHỊP 1: TRẠNG THÁI NHẮM */
                         .state-nham .rays { opacity: 0; transform: scale(0.8); }
-                        .state-nham .eye-frame { transform: scaleY(0.1); fill: #020C20; } /* Ép bẹp con mắt lại */
+                        .state-nham .eye-frame { transform: scaleY(0.1); fill: #020C20; stroke-width: 16px; } /* Ép bẹp và làm dày nét mắt lại */
                         .state-nham .pupil-group { opacity: 0; transform: scale(0); }
 
                         /* NHỊP 2: MỞ MẮT NHÌN THẲNG */
