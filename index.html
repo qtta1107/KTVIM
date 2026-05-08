@@ -5,31 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biểu đồ Đường ngân sách</title>
     
-    <!-- Import Tailwind CSS để dùng các class giao diện -->
+    <!-- Import Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Import thư viện React -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Import Babel để trình duyệt hiểu được mã JSX của React -->
+    <!-- Import Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="bg-[#060a16] m-0 p-0 overflow-hidden">
-    <!-- Nơi React sẽ hiển thị ứng dụng -->
     <div id="root"></div>
 
-    <!-- Đoạn mã React của chúng ta -->
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
         // =====================================================================
-        // COMPONENT CON MẮT FIGMA (HOẠT ẢNH CHUẨN XÁC 3 TRẠNG THÁI)
+        // COMPONENT CON MẮT SVG (ĐỒ HOẠ MỚI - HOẠT ẢNH MƯỢT MÀ)
         // =====================================================================
         const EyeIcon = ({ isOpen, toggle }) => {
             const [eyeState, setEyeState] = useState('nham');
 
-            // Quản lý Animation của con mắt: CHỈ LẶP 3 TRẠNG THÁI (mo1, mo2, mo3)
             useEffect(() => {
                 if (!isOpen) {
                     setEyeState('nham');
@@ -41,17 +38,17 @@
                     const wait = (ms) => new Promise(res => setTimeout(res, ms));
 
                     while(isRunning) {
-                        // Trạng thái 1: Nhìn thẳng
+                        // Nhịp 2: Mở mắt nhìn thẳng
                         setEyeState('mo1'); 
                         await wait(1500);
                         if(!isRunning) break;
 
-                        // Trạng thái 2: Liếc trái
+                        // Nhịp 3: Liếc trái (Trừng nhẹ)
                         setEyeState('mo2'); 
                         await wait(2000);
                         if(!isRunning) break;
 
-                        // Trạng thái 3: Liếc phải
+                        // Nhịp 4: Liếc phải (Nheo lườm)
                         setEyeState('mo3'); 
                         await wait(2000);
                     }
@@ -64,101 +61,92 @@
                 <div 
                     onClick={toggle}
                     className="cursor-pointer shadow-lg transition-transform hover:scale-110 flex items-center justify-center bg-[#020C20]"
-                    style={{ width: '56px', height: '56px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.15)', overflow: 'hidden' }}
+                    style={{ width: '56px', height: '56px', borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.25)', overflow: 'hidden' }}
                     title={isOpen ? 'Tắt vùng khả thi' : 'Hiện vùng khả thi'}
                 >
-                    <div style={{ transform: 'scale(0.33)', position: 'relative', width: '158px', height: '165px' }}>
-                        <div className={`eye-base state-${eyeState}`}>
-                            <div className="open-1">
-                                <div className="ellipse-9"></div>
-                                <div className="ellipse-4"></div>
-                                <div className="frame-11">
-                                    <div className="frame-12">
-                                        <div className="ellipse-7"></div>
-                                        <div className="polygon-3"></div>
-                                    </div>
-                                    <div className="ellipse-8"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {/* SVG CON MẮT CHUẨN THIẾT KẾ FIGMA - ĐÃ KHỬ RĂNG CƯA */}
+                    <svg viewBox="0 0 100 100" shapeRendering="geometricPrecision" className={`eye-svg state-${eyeState}`} style={{ width: '48px', height: '48px' }}>
+                        <defs>
+                            {/* Mask (Mặt nạ) để cắt góc con ngươi 1 cách cực kỳ sắc nét, tuyệt đối không bị lem */}
+                            <mask id="pupilCutout">
+                                <rect x="0" y="0" width="100" height="100" fill="white" />
+                                <polygon points="50,50 65,50 65,35" fill="black" />
+                            </mask>
+                        </defs>
+
+                        {/* Vòng tròn nền ngoài */}
+                        <circle cx="50" cy="50" r="45" fill="#88A4CF" stroke="#020C20" strokeWidth="6" />
+                        
+                        {/* Cụm tia sáng (Rays) */}
+                        <g className="rays" stroke="#020C20" strokeWidth="6" strokeLinecap="round">
+                            {/* 3 tia trên */}
+                            <line x1="50" y1="16" x2="50" y2="25" />
+                            <line x1="34" y1="20" x2="41" y2="28" />
+                            <line x1="66" y1="20" x2="59" y2="28" />
+                            {/* 3 tia dưới */}
+                            <line x1="50" y1="84" x2="50" y2="75" />
+                            <line x1="34" y1="80" x2="41" y2="72" />
+                            <line x1="66" y1="80" x2="59" y2="72" />
+                        </g>
+
+                        {/* Cụm Mắt (Khung + Con ngươi) */}
+                        <g className="eye-group">
+                            {/* Khung mắt hình quả hạnh nhân (Đã bo góc mềm mại 2 bên bằng strokeLinejoin) */}
+                            <path className="eye-frame" d="M 20 50 Q 50 20 80 50 Q 50 80 20 50 Z" fill="#88A4CF" stroke="#020C20" strokeWidth="6" strokeLinejoin="round" strokeLinecap="round" />
+                            
+                            {/* Con ngươi */}
+                            <g className="pupil-group">
+                                {/* Con ngươi bị cắt góc tam giác sạch sẽ nhờ mặt nạ Mask */}
+                                <circle cx="50" cy="50" r="12" fill="#020C20" mask="url(#pupilCutout)" />
+                            </g>
+                        </g>
+                    </svg>
                 </div>
             );
         };
 
         // =====================================================================
-        // COMPONENT MENU HƯỚNG DẪN (HAMBURGER ICON FIGMA)
+        // COMPONENT MENU HƯỚNG DẪN 
         // =====================================================================
         const GuideIcon = ({ toggle }) => {
             return (
                 <div 
                     onClick={toggle}
                     className="cursor-pointer shadow-lg transition-transform hover:scale-110 flex flex-col items-center justify-center gap-[6px] bg-[#88A4CF]"
-                    style={{ width: '56px', height: '56px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.15)' }}
+                    style={{ width: '56px', height: '56px', borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.25)' }}
                     title="Hướng dẫn sử dụng"
                 >
-                    <div style={{ width: '28px', height: '6px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
-                    <div style={{ width: '28px', height: '6px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
-                    <div style={{ width: '28px', height: '6px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
+                    <div style={{ width: '28px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
+                    <div style={{ width: '28px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
+                    <div style={{ width: '28px', height: '5px', backgroundColor: '#020C20', borderRadius: '3px' }}></div>
                 </div>
             );
         };
 
         function App() {
-            // Thêm State cho màn hình Intro và Fullscreen
             const [showIntro, setShowIntro] = useState(true);
             const [isFullscreen, setIsFullscreen] = useState(false);
-            
-            // TÍNH NĂNG MỚI: Modal hướng dẫn sử dụng
             const [showGuide, setShowGuide] = useState(false);
-
-            // Trạng thái cho các biến số
             const [income, setIncome] = useState(16);
-            const [priceX, setPriceX] = useState(2.0); // Khởi tạo với số thập phân
+            const [priceX, setPriceX] = useState(2.0); 
             const [priceY, setPriceY] = useState(1.0);
-            
-            // Trạng thái lưu các điểm (points) do người dùng click
             const [points, setPoints] = useState([]);
-            // Trạng thái lưu toạ độ chuột trực tiếp
             const [hoverPoint, setHoverPoint] = useState(null);
-            
-            // Bật tắt vùng khả thi
             const [showFeasible, setShowFeasible] = useState(false);
-
-            // State lưu "Đường Ngân Sách Gốc" (Baseline) để so sánh sự dịch chuyển
             const [baseline, setBaseline] = useState(null);
-
             const svgRef = useRef(null);
-
-            // Trục toạ độ logic cố định (Giảm từ 40 xuống 32)
             const maxVal = 32;
-
-            // Kích thước SVG thu gọn để fit 1 màn hình
             const width = 640;
             const height = 360;
-            
-            // Không gian padding trong biểu đồ
-            const padL = 60;
-            const padB = 40;
-            const padR = 40;
-            const padT = 40; // Tăng khoảng trống phía trên từ 20 lên 40 để mũi tên không bị xén
-
-            // Kích thước khu vực vẽ biểu đồ thực tế
+            const padL = 60, padB = 40, padR = 40, padT = 40; 
             const chartW = width - padL - padR;
             const chartH = height - padB - padT;
-            
-            // Tỷ lệ quy đổi từ logic sang pixel
             const scaleX = chartW / maxVal;
             const scaleY = chartH / maxVal;
-
-            // Tính điểm cắt các trục dựa trên logic
             const xIntercept = income / priceX;
             const yIntercept = income / priceY;
-            
-            // Tính Tỷ lệ Px/Py (để hiển thị góc dưới)
             const ratioVal = (priceX / priceY).toFixed(2);
 
-            // Thoát Fullscreen hoặc Đóng Modal khi nhấn phím ESC
             useEffect(() => {
                 const handleKeyDown = (e) => {
                     if (e.key === 'Escape') {
@@ -170,12 +158,8 @@
                 return () => document.removeEventListener('keydown', handleKeyDown);
             }, []);
 
-            // Hàm bật/tắt Fullscreen bằng CSS
-            const toggleFullscreen = () => {
-                setIsFullscreen(!isFullscreen);
-            };
+            const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
 
-            // Hàm trích xuất toạ độ logic từ vị trí chuột
             const getLogicalCoordinates = (clientX, clientY) => {
                 const svg = svgRef.current;
                 if (!svg) return null;
@@ -188,116 +172,57 @@
                 const graphY = (height - padB) - cursorPt.y; 
 
                 if (graphX >= -10 && graphX <= chartW + 20 && graphY >= -10 && graphY <= chartH + 20) {
-                    return {
-                        x: Math.max(0, graphX) / scaleX,
-                        y: Math.max(0, graphY) / scaleY
-                    };
+                    return { x: Math.max(0, graphX) / scaleX, y: Math.max(0, graphY) / scaleY };
                 }
                 return null;
             };
 
-            // Theo dõi chuột khi di chuyển trong SVG
-            const handleMouseMove = (e) => {
-                setHoverPoint(getLogicalCoordinates(e.clientX, e.clientY));
-            };
-
-            // Ẩn toạ độ khi đưa chuột ra ngoài SVG
-            const handleMouseLeave = () => {
-                setHoverPoint(null);
-            };
-
-            // Xử lý sự kiện click vào đồ thị để ghim điểm
+            const handleMouseMove = (e) => setHoverPoint(getLogicalCoordinates(e.clientX, e.clientY));
+            const handleMouseLeave = () => setHoverPoint(null);
             const handleChartClick = (e) => {
                 const coords = getLogicalCoordinates(e.clientX, e.clientY);
-                if (coords) {
-                    setPoints([...points, { id: Date.now(), x: coords.x, y: coords.y }]);
-                }
+                if (coords) setPoints([...points, { id: Date.now(), x: coords.x, y: coords.y }]);
             };
-
             const handleRemovePoint = (e, id) => {
                 e.stopPropagation(); 
                 setPoints(points.filter(p => p.id !== id));
             };
 
-            // --- GIAO DIỆN MỞ ĐẦU (INTRO OPENING THEO THIẾT KẾ FIGMA) ---
             if (showIntro) {
                 return (
-                    <div 
-                        onClick={() => setShowIntro(false)}
-                        className="h-screen w-screen bg-[#020C20] flex items-center justify-center text-white overflow-hidden relative cursor-pointer"
-                        style={{ fontFamily: "'Roboto Slab', serif" }}
-                    >
+                    <div onClick={() => setShowIntro(false)} className="h-screen w-screen bg-[#020C20] flex items-center justify-center text-white overflow-hidden relative cursor-pointer" style={{ fontFamily: "'Roboto Slab', serif" }}>
                         <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500&display=swap');`}} />
-                        <div className="text-center text-[48px] leading-[64px] text-white uppercase px-4">
-                            BIỂU ĐỒ TƯƠNG TÁC MINH HOẠ<br/>ĐƯỜNG NGÂN SÁCH
-                        </div>
-                        <div className="absolute bottom-8 right-8 lg:bottom-[39px] lg:right-[189px] text-[15px] leading-[132.42%] text-white opacity-[0.51]">
-                            by Tuấn Anh - 2511110048
-                        </div>
-                        <div className="absolute bottom-8 text-[13px] opacity-20 animate-pulse tracking-wider">
-                            * Nhấp chuột để bắt đầu
-                        </div>
+                        <div className="text-center text-[48px] leading-[64px] text-white uppercase px-4">BIỂU ĐỒ TƯƠNG TÁC MINH HOẠ<br/>ĐƯỜNG NGÂN SÁCH</div>
+                        <div className="absolute bottom-8 right-8 lg:bottom-[39px] lg:right-[189px] text-[15px] leading-[132.42%] text-white opacity-[0.51]">by Tuấn Anh - 2511110048</div>
+                        <div className="absolute bottom-8 text-[13px] opacity-20 animate-pulse tracking-wider">* Nhấp chuột để bắt đầu</div>
                     </div>
                 );
             }
 
-            // --- GIAO DIỆN CHÍNH ---
             return (
                 <div className={`${isFullscreen ? 'fixed inset-0 z-[100] w-full h-full' : 'h-screen w-full relative'} bg-[#060a16] flex flex-col items-center justify-evenly py-4 px-4 font-serif text-white selection:bg-[#93A3C7] overflow-hidden`}>
 
-                    {/* Nút Fullscreen */}
-                    <button 
-                        onClick={toggleFullscreen} 
-                        className="absolute top-4 right-4 p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-50 flex items-center justify-center border border-white/20 text-[#93A3C7]"
-                        title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
-                    >
-                        {isFullscreen ? (
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-                        ) : (
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                        )}
+                    <button onClick={toggleFullscreen} className="absolute top-4 right-4 p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-50 flex items-center justify-center border border-white/20 text-[#93A3C7]">
+                        {isFullscreen ? (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>) : (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>)}
                     </button>
 
-                    {/* CỤM NÚT TRÊN CÙNG BÊN TRÁI: CON MẮT & HƯỚNG DẪN SỬ DỤNG */}
                     <div className="absolute top-4 left-4 z-50 flex gap-3">
                         <EyeIcon isOpen={showFeasible} toggle={() => setShowFeasible(!showFeasible)} />
                         <GuideIcon toggle={() => setShowGuide(true)} />
                     </div>
 
-                    {/* MODAL HƯỚNG DẪN SỬ DỤNG */}
                     {showGuide && (
-                        <div 
-                            className="fixed inset-0 z-[200] flex items-center justify-center bg-[#020C20]/80 backdrop-blur-sm transition-opacity" 
-                            onClick={() => setShowGuide(false)}
-                        >
-                            <div 
-                                className="bg-[#060a16] border-[1.5px] border-[#88A4CF]/40 rounded-2xl p-6 md:p-8 max-w-2xl w-[90%] shadow-2xl relative cursor-default" 
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <button 
-                                    onClick={() => setShowGuide(false)} 
-                                    className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
-                                >
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#020C20]/80 backdrop-blur-sm transition-opacity" onClick={() => setShowGuide(false)}>
+                            <div className="bg-[#060a16] border-[1.5px] border-[#88A4CF]/40 rounded-2xl p-6 md:p-8 max-w-2xl w-[90%] shadow-2xl relative cursor-default" onClick={e => e.stopPropagation()}>
+                                <button onClick={() => setShowGuide(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
-                                
                                 <h2 className="text-[26px] font-['Roboto_Slab'] text-[#81AAE9] mb-6 text-center">Hướng Dẫn Sử Dụng</h2>
-                                
                                 <ul className="space-y-5 text-gray-300 font-sans text-[15px] leading-relaxed">
+                                    <li className="flex gap-4 items-start"><div><b>Nút Con Mắt:</b> Bật/tắt "Vùng Khả Thi" (tập hợp các gói hàng hóa bạn có thể mua với ngân sách hiện tại).</div></li>
+                                    <li className="flex gap-4 items-start"><div><b>Thanh Trượt:</b> Kéo để thay đổi các biến số: Thu nhập (I), Giá hàng X (Px) và Giá hàng Y (Py).</div></li>
+                                    <li className="flex gap-4 items-start"><div><b>Nút Ghim Mốc:</b> Lưu lại hình dáng đường ngân sách hiện tại (làm bóng mờ) để dễ dàng so sánh sự tịnh tiến/xoay khi bạn thay đổi các thông số.</div></li>
                                     <li className="flex gap-4 items-start">
-                                        <div className="text-[24px] mt-[-2px]"></div> 
-                                        <div><b>Nút Con Mắt:</b> Bật/tắt "Vùng Khả Thi" (tập hợp các gói hàng hóa bạn có thể mua với ngân sách hiện tại).</div>
-                                    </li>
-                                    <li className="flex gap-4 items-start">
-                                        <div className="text-[24px] mt-[-2px]"></div> 
-                                        <div><b>Thanh Trượt:</b> Kéo để thay đổi các biến số: Thu nhập (I), Giá hàng X (Px) và Giá hàng Y (Py).</div>
-                                    </li>
-                                    <li className="flex gap-4 items-start">
-                                        <div className="text-[24px] mt-[-2px]">📌</div> 
-                                        <div><b>Nút Ghim Mốc:</b> Lưu lại hình dáng đường ngân sách hiện tại (làm bóng mờ) để dễ dàng so sánh sự tịnh tiến/xoay khi bạn thay đổi các thông số.</div>
-                                    </li>
-                                    <li className="flex gap-4 items-start">
-                                        <div className="text-[24px] mt-[-2px]"></div> 
                                         <div>
                                             <b>Tương Tác Đồ Thị:</b> Click vào bất kỳ đâu trên đồ thị để ghim điểm tọa độ. Phân tích màu sắc điểm ghim:<br/>
                                             <span className="text-[#10b981] font-bold tracking-wide mt-1 inline-block">● Xanh lá:</span> Gói hàng tối ưu (Sử dụng hết ngân sách).<br/>
@@ -310,7 +235,6 @@
                         </div>
                     )}
 
-                    {/* CSS TỔNG HỢP: Tuỳ chỉnh thanh trượt & MÃ FIGMA CHUẨN XÁC CHO CON MẮT */}
                     <style dangerouslySetInnerHTML={{__html: `
                         /* THANH TRƯỢT */
                         .custom-slider { -webkit-appearance: none; background: transparent; width: 100%; }
@@ -318,81 +242,35 @@
                         .custom-slider::-webkit-slider-runnable-track { width: 100%; height: 1px; cursor: pointer; background: #475569; }
                         .custom-slider::-webkit-slider-thumb { height: 16px; width: 16px; border-radius: 50%; background: #060a16; border: 4px solid #ffffff; cursor: pointer; -webkit-appearance: none; margin-top: -7.5px; }
 
-                        /* ============ CON MẮT FIGMA (CSS HOẠT ẢNH 3 TRẠNG THÁI LẶP) ============ */
-                        .eye-base { position: relative; width: 158px; height: 165px; background: transparent; }
-                        /* Mọi chi tiết sẽ transition nhịp nhàng trong 0.4s */
-                        .eye-base * { transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); box-sizing: border-box; position: absolute; }
-                        
-                        /* Lông mày sẽ được bo cong hoàn hảo */
-                        .f7-l8, .f7-l15, .f7-l10, .f8-l8, .f8-l15, .f8-l10 { border-radius: 10px; }
+                        /* ============ CSS ANIMATION CON MẮT MỚI (SVG) ============ */
+                        .eye-svg { width: 100%; height: 100%; }
+                        /* Mọi thành phần trong SVG đều chuyển động mượt */
+                        .eye-svg * {
+                            transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+                            transform-origin: 50px 50px; /* Tâm quay ở giữa toạ độ 100x100 */
+                        }
 
-                        /* Cấu trúc lõi - Định dạng cơ bản (Trạng thái Mở 1) */
-                        .open-1 { width: 111px; height: 111px; left: calc(50% - 111px/2 + 0.5px); top: calc(50% - 111px/2); }
-                        .ellipse-9 { width: 111px; height: 111px; left: 0px; top: 0px; border: 2.22px solid #81AAE9; border-radius: 50%; }
-                        .ellipse-4 { width: 100px; height: 100px; left: 6px; top: 5px; background: #88A4CF; border-radius: 50%; }
-                        
-                        .frame-7 { width: 32px; height: 15.66px; left: 39px; top: 21px; transform: rotate(0deg); }
-                        .f7-l8 { width: 10px; height: 0px; left: calc(50% - 10px/2 - 11px); top: 8px; border: 4px solid #020C20; transform: rotate(50deg); }
-                        .f7-l15 { width: 10px; height: 0px; left: calc(50% - 10px/2 + 14.57px); top: 8px; border: 4px solid #020C20; transform: rotate(130deg); }
-                        .f7-l10 { width: 14px; height: 0px; left: calc(50% - 14px/2 + 9px); top: 0px; border: 4px solid #020C20; transform: rotate(-90deg); }
+                        /* NHỊP 1: TRẠNG THÁI NHẮM */
+                        .state-nham .rays { opacity: 0; transform: scale(0.8); }
+                        .state-nham .eye-frame { transform: scaleY(0.1); fill: #020C20; } /* Ép bẹp con mắt lại */
+                        .state-nham .pupil-group { opacity: 0; transform: scale(0); }
 
-                        .frame-8 { width: 32px; height: 15.66px; left: 39px; top: calc(50% - 15.66px/2 + 27.33px); transform: rotate(-180deg); }
-                        .f8-l8 { width: 10px; height: 0px; left: calc(50% - 10px/2 + 14.57px); top: 0px; border: 4px solid #020C20; transform: rotate(-130deg); }
-                        .f8-l15 { width: 10px; height: 0px; left: calc(50% - 10px/2 - 11px); top: 0px; border: 4px solid #020C20; transform: rotate(-50deg); }
-                        .f8-l10 { width: 14px; height: 0px; left: calc(50% - 14px/2 + 5px); top: 1.66px; border: 4px solid #020C20; transform: rotate(90deg); }
+                        /* NHỊP 2: MỞ MẮT NHÌN THẲNG */
+                        .state-mo1 .rays { opacity: 1; transform: rotate(0deg); }
+                        .state-mo1 .eye-frame { transform: scaleY(1); }
+                        .state-mo1 .pupil-group { opacity: 1; transform: translate(0, 0) scale(1); }
 
-                        .frame-11 { width: 54px; height: 31.96px; left: 27px; top: 40px; transform: rotate(0deg); }
-                        .frame-12 { width: 24px; height: 22px; left: 16px; top: 5px; transform: rotate(0deg); }
-                        .ellipse-7 { width: 22px; height: 22px; left: calc(50% - 22px/2 - 1px); top: calc(50% - 22px/2); background: #020C20; border-radius: 50%; transform: rotate(0deg); }
-                        .polygon-3 { width: 9px; height: 9px; left: 15px; top: 2px; background: #88A4CF; border-radius: 1px; transform: rotate(0deg); opacity: 1; }
-                        .ellipse-8 { width: 54px; height: 31.96px; left: calc(50% - 54px/2); top: calc(50% - 31.96px/2); border: 4px solid #020C20; border-radius: 50%; transform: rotate(0deg); }
+                        /* NHỊP 3: LIẾC TRÁI (Trừng nhẹ) */
+                        .state-mo2 .rays { transform: translate(-4px, 0) rotate(-15deg); }
+                        .state-mo2 .eye-frame { transform: scaleY(1.05); } 
+                        .state-mo2 .pupil-group { transform: translate(-10px, 0) scale(1.05); }
 
-                        /* --- TRẠNG THÁI NHẮM MẮT (Khi tắt vùng khả thi) --- */
-                        .state-nham .open-1 { left: calc(50% - 111px/2 - 0.5px); }
-                        .state-nham .ellipse-9 { border-width: 14px; }
-                        .state-nham .ellipse-4 { background: #020C20; }
-                        .state-nham .frame-7 { top: calc(50% - 15.66px/2 + 0.33px); }
-                        .state-nham .frame-8 { top: calc(50% - 15.66px/2 + 0.67px); }
-                        .state-nham .ellipse-7 { width: 14px; height: 14px; left: calc(50% - 14px/2 - 1px); top: calc(50% - 14px/2); background: #88A4CF; }
-                        .state-nham .polygon-3 { opacity: 0; }
-                        .state-nham .ellipse-8 { width: 65px; height: 38.47px; left: calc(50% - 65px/2 + 1px); top: calc(50% - 38.47px/2); border: 8.42593px solid #88A4CF; }
-
-                        /* --- TRẠNG THÁI LIẾC TRÁI (MO 2) --- */
-                        .state-mo2 .frame-7 { left: 17.36px; top: 14.44px; transform: rotate(-18deg); }
-                        .state-mo2 .f7-l8 { left: calc(50% - 10px/2 - 8.53px); top: 17.5px; transform: rotate(32deg); }
-                        .state-mo2 .f7-l15 { top: 7.61px; left: calc(50% - 10px/2 + 18.16px); transform: rotate(112deg); }
-                        .state-mo2 .f7-l10 { left: calc(50% - 14px/2 + 8.12px); top: 4.33px; transform: rotate(-108deg); }
-                        
-                        .state-mo2 .frame-8 { left: 19.58px; top: calc(50% - 15.66px/2 + 17.69px); transform: rotate(-166deg); }
-                        .state-mo2 .f8-l8 { left: calc(50% - 10px/2 + 11.19px); top: 7.87px; transform: rotate(-102deg); }
-                        .state-mo2 .f8-l15 { left: calc(50% - 10px/2 - 13.58px); top: 3.64px; transform: rotate(-36deg); }
-                        .state-mo2 .f8-l10 { left: calc(50% - 14px/2 - 2.01px); top: 5.43px; transform: rotate(113deg); }
-                        
-                        .state-mo2 .frame-11 { left: 21.71px; top: 33.71px; transform: rotate(5deg); }
-                        .state-mo2 .frame-12 { left: 7.41px; top: 5.59px; transform: rotate(5deg); }
-                        .state-mo2 .ellipse-7 { transform: rotate(5deg); }
-                        .state-mo2 .polygon-3 { left: 15.9px; top: 3.3px; transform: rotate(5deg); }
-                        .state-mo2 .ellipse-8 { transform: rotate(5deg); }
-
-                        /* --- TRẠNG THÁI LIẾC PHẢI (MO 3) --- */
-                        .state-mo3 .frame-7 { width: 38.31px; height: 20.17px; left: 60.74px; top: 16.59px; transform: rotate(25deg); }
-                        .state-mo3 .f7-l8 { width: 11.97px; left: calc(50% - 11.97px/2 - 8.69px); top: 8.68px; border-width: 4.78816px; transform: rotate(75deg); }
-                        .state-mo3 .f7-l15 { width: 11.97px; left: calc(50% - 11.97px/2 + 15.18px); top: 24.87px; border-width: 4.78816px; transform: rotate(155deg); }
-                        .state-mo3 .f7-l10 { width: 16.76px; left: calc(50% - 16.76px/2 + 10.2px); top: 9.11px; border-width: 4.78816px; transform: rotate(-65deg); }
-                        
-                        .state-mo3 .frame-8 { left: 58px; top: calc(50% - 15.66px/2 + 30.33px); transform: rotate(-199deg); } /* Đã được đổi góc để không quay vòng 360 độ */
-                        .state-mo3 .f8-l8 { left: calc(50% - 10px/2 + 13.18px); top: 2.09px; transform: rotate(-149deg); }
-                        .state-mo3 .f8-l15 { left: calc(50% - 10px/2 - 8.51px); top: 8.33px; transform: rotate(-69deg); }
-                        .state-mo3 .f8-l10 { left: calc(50% - 14px/2 + 4.78px); top: 7.43px; transform: rotate(71deg); }
-                        
-                        .state-mo3 .frame-11 { left: 40.04px; top: 41.4px; transform: rotate(8deg); }
-                        .state-mo3 .frame-12 { left: 28.42px; top: 8.85px; transform: rotate(8deg); }
-                        .state-mo3 .ellipse-7 { transform: rotate(8deg); }
-                        .state-mo3 .polygon-3 { left: 14.27px; top: 4.78px; transform: rotate(8deg); }
-                        .state-mo3 .ellipse-8 { transform: rotate(8deg); }
+                        /* NHỊP 4: LIẾC PHẢI (Nheo lườm) */
+                        .state-mo3 .rays { transform: translate(4px, 0) rotate(15deg); }
+                        .state-mo3 .eye-frame { transform: scaleY(0.85); } /* Nheo mắt */
+                        .state-mo3 .pupil-group { transform: translate(10px, 0) scale(0.95); }
                     `}} />
 
-                    {/* Khu vực 1: Phương trình Đường Ngân Sách ĐỘNG */}
                     <div className="border border-white/60 rounded-[1.25rem] px-8 py-3 text-xl flex items-center justify-center gap-4 shadow-lg bg-[#060a16] flex-shrink-0 z-10 mt-2">
                         <span>Y = -</span>
                         <div className="flex flex-col items-center text-lg font-mono text-[#93A3C7] font-bold">
@@ -406,161 +284,76 @@
                         </div>
                     </div>
 
-                    {/* Khu vực 2: Thanh trượt & Biểu đồ */}
                     <div className="flex flex-col md:flex-row justify-center items-center w-full max-w-5xl gap-8 lg:gap-16 flex-shrink-0 mt-4">
-                        
-                        {/* Cột trái: Bảng điều khiển thanh trượt dọc */}
                         <div className="flex flex-col gap-6 w-full max-w-[240px]">
-                            {/* I */}
                             <div className="flex flex-col gap-3 w-full">
                                 <div className="flex justify-end items-center gap-3 w-full pr-2">
                                     <span className="text-xl font-medium text-right">I =</span>
-                                    <span className="border-[1.5px] border-white rounded-xl px-3 py-1 bg-[#060a16] min-w-[4rem] text-center font-mono text-lg tracking-widest">
-                                        {income.toString().padStart(2, '0')}
-                                    </span>
+                                    <span className="border-[1.5px] border-white rounded-xl px-3 py-1 bg-[#060a16] min-w-[4rem] text-center font-mono text-lg tracking-widest">{income.toString().padStart(2, '0')}</span>
                                 </div>
                                 <input type="range" className="custom-slider" min="16" max="32" step="1" value={income} onChange={(e)=>setIncome(Number(e.target.value))} />
                             </div>
-
-                            {/* Px */}
                             <div className="flex flex-col gap-3 w-full">
                                 <div className="flex justify-end items-center gap-3 w-full pr-2">
                                     <span className="text-xl font-medium text-right">Px =</span>
-                                    <span className="border-[1.5px] border-white rounded-xl px-3 py-1 bg-[#060a16] min-w-[4rem] text-center font-mono text-lg tracking-widest">
-                                        {(priceX < 10 ? '0' : '') + priceX.toFixed(1)}
-                                    </span>
+                                    <span className="border-[1.5px] border-white rounded-xl px-3 py-1 bg-[#060a16] min-w-[4rem] text-center font-mono text-lg tracking-widest">{(priceX < 10 ? '0' : '') + priceX.toFixed(1)}</span>
                                 </div>
                                 <input type="range" className="custom-slider" min="1" max="20" step="0.1" value={priceX} onChange={(e)=>setPriceX(Number(e.target.value))} />
                             </div>
-
-                            {/* Py */}
                             <div className="flex flex-col gap-3 w-full">
                                 <div className="flex justify-end items-center gap-3 w-full pr-2">
                                     <span className="text-xl font-medium text-right">Py =</span>
-                                    <span className="border-[1.5px] border-white rounded-xl px-3 py-1 bg-[#060a16] min-w-[4rem] text-center font-mono text-lg tracking-widest">
-                                        {(priceY < 10 ? '0' : '') + priceY.toFixed(1)}
-                                    </span>
+                                    <span className="border-[1.5px] border-white rounded-xl px-3 py-1 bg-[#060a16] min-w-[4rem] text-center font-mono text-lg tracking-widest">{(priceY < 10 ? '0' : '') + priceY.toFixed(1)}</span>
                                 </div>
                                 <input type="range" className="custom-slider" min="1" max="20" step="0.1" value={priceY} onChange={(e)=>setPriceY(Number(e.target.value))} />
                             </div>
-
-                            {/* Nút Lưu Mốc So Sánh (Baseline) */}
-                            <button 
-                                onClick={() => setBaseline(baseline ? null : { income, priceX, priceY })}
-                                className={`mt-2 py-2 px-4 rounded-xl border transition-all font-sans text-sm font-medium ${baseline ? 'bg-red-500/20 border-red-500/50 text-red-300 hover:bg-red-500/30' : 'bg-white/5 border-white/20 hover:bg-white/10 text-gray-300'}`}
-                            >
+                            <button onClick={() => setBaseline(baseline ? null : { income, priceX, priceY })} className={`mt-2 py-2 px-4 rounded-xl border transition-all font-sans text-sm font-medium ${baseline ? 'bg-red-500/20 border-red-500/50 text-red-300 hover:bg-red-500/30' : 'bg-white/5 border-white/20 hover:bg-white/10 text-gray-300'}`}>
                                 {baseline ? '🗑 Bỏ ghim mốc so sánh' : '📌 Ghim mốc này để so sánh'}
                             </button>
                         </div>
 
-                        {/* Cột phải: Vùng chứa Biểu đồ */}
                         <div className="w-full max-w-[640px] bg-[#88A4CF] rounded-[2rem] py-6 px-6 shadow-2xl relative select-none flex justify-center items-center overflow-hidden">
-                            <svg 
-                                ref={svgRef}
-                                viewBox={`0 0 ${width} ${height}`} 
-                                className="w-full h-auto drop-shadow-md overflow-hidden cursor-crosshair"
-                                onMouseMove={handleMouseMove}
-                                onMouseLeave={handleMouseLeave}
-                                onClick={handleChartClick}
-                            >
+                            <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full h-auto drop-shadow-md overflow-hidden cursor-crosshair" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} onClick={handleChartClick}>
                                 <defs>
-                                    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#000" />
-                                    </marker>
+                                    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#000" /></marker>
                                 </defs>
-
-                                {/* Nhóm trục và đồ thị dịch về gốc toạ độ mới */}
                                 <g transform={`translate(${padL}, ${height - padB})`}>
-                                    
                                     <rect x={0} y={-chartH - 20} width={chartW + 20} height={chartH + 20} fill="transparent" />
-
-                                    {/* LƯỚI TỌA ĐỘ 1x1 MỜ MÀU 020C20 VÀO NỀN */}
                                     {Array.from({length: maxVal}, (_, i) => i + 1).map(val => (
                                         <g key={`grid-${val}`}>
                                             <line x1={val * scaleX} y1={0} x2={val * scaleX} y2={-chartH - 20} stroke="#020C20" strokeWidth="0.8" opacity="0.15" />
                                             <line x1={0} y1={-val * scaleY} x2={chartW + 20} y2={-val * scaleY} stroke="#020C20" strokeWidth="0.8" opacity="0.15" />
                                         </g>
                                     ))}
-
-                                    {/* Vùng khả thi (Ẩn/Hiện bằng Toggle) */}
-                                    <polygon 
-                                        points={`0,0 0,${-yIntercept * scaleY} ${xIntercept * scaleX},0`}
-                                        fill="#4B8EF2"
-                                        opacity={showFeasible ? "1" : "0"}
-                                        style={{ transition: 'opacity 0.4s ease-in-out' }}
-                                    />
-
-                                    {/* Trục X & Y */}
+                                    <polygon points={`0,0 0,${-yIntercept * scaleY} ${xIntercept * scaleX},0`} fill="#4B8EF2" opacity={showFeasible ? "1" : "0"} style={{ transition: 'opacity 0.4s ease-in-out' }} />
                                     <line x1={-3} y1={0} x2={chartW + 20} y2={0} stroke="#000" strokeWidth="4" markerEnd="url(#arrow)" />
                                     <line x1={0} y1={3} x2={0} y2={-chartH - 20} stroke="#000" strokeWidth="4" markerEnd="url(#arrow)" />
-
-                                    {/* Mốc toạ độ (Ticks) 0, 4, 8... tới 32 */}
                                     {Array.from({length: 9}, (_, i) => i * 4).map(val => (
                                         <g key={`tick-${val}`}>
-                                            {val > 0 && (
-                                                <>
-                                                    <line x1={val * scaleX} y1={0} x2={val * scaleX} y2={5} stroke="#000" strokeWidth="2" />
-                                                    <text x={val * scaleX} y={20} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle">{val}</text>
-                                                </>
-                                            )}
-                                            {val > 0 && (
-                                                <>
-                                                    <line x1={0} y1={-val * scaleY} x2={-5} y2={-val * scaleY} stroke="#000" strokeWidth="2" />
-                                                    <text x={-10} y={-val * scaleY + 5} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="end">{val}</text>
-                                                </>
-                                            )}
+                                            {val > 0 && (<><line x1={val * scaleX} y1={0} x2={val * scaleX} y2={5} stroke="#000" strokeWidth="2" /><text x={val * scaleX} y={20} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle">{val}</text></>)}
+                                            {val > 0 && (<><line x1={0} y1={-val * scaleY} x2={-5} y2={-val * scaleY} stroke="#000" strokeWidth="2" /><text x={-10} y={-val * scaleY + 5} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="end">{val}</text></>)}
                                         </g>
                                     ))}
-                                    {/* Điểm gốc 0 */}
                                     <text x={-10} y={18} fill="#000" fontSize="13" fontWeight="bold" fontFamily="sans-serif" textAnchor="end">0</text>
-
-                                    {/* Đường mốc so sánh (Baseline) */}
                                     {baseline && (
                                         <g>
-                                            <line 
-                                                x1={0} y1={-(baseline.income / baseline.priceY) * scaleY} 
-                                                x2={(baseline.income / baseline.priceX) * scaleX} y2={0} 
-                                                stroke="#334155" strokeWidth="3" strokeDasharray="8 6" opacity="0.6" strokeLinecap="round" 
-                                            />
-                                            <text 
-                                                x={(baseline.income / baseline.priceX) * scaleX - 10} 
-                                                y={-10} 
-                                                fill="#334155" fontSize="11" fontWeight="bold" fontFamily="sans-serif" textAnchor="end" opacity="0.8"
-                                            >
-                                                (Mốc cũ)
-                                            </text>
+                                            <line x1={0} y1={-(baseline.income / baseline.priceY) * scaleY} x2={(baseline.income / baseline.priceX) * scaleX} y2={0} stroke="#334155" strokeWidth="3" strokeDasharray="8 6" opacity="0.6" strokeLinecap="round" />
+                                            <text x={(baseline.income / baseline.priceX) * scaleX - 10} y={-10} fill="#334155" fontSize="11" fontWeight="bold" fontFamily="sans-serif" textAnchor="end" opacity="0.8">(Mốc cũ)</text>
                                         </g>
                                     )}
-
-                                    {/* Nhãn giao điểm */}
                                     <text x={xIntercept * scaleX} y={-10} fill="#020C20" fontSize="11" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle" opacity="0.6">I/Px</text>
                                     <text x={15} y={-yIntercept * scaleY} fill="#020C20" fontSize="11" fontWeight="bold" fontFamily="sans-serif" opacity="0.6">I/Py</text>
-
-                                    {/* Đường Ngân Sách hiện tại */}
                                     <line x1={0} y1={-yIntercept * scaleY} x2={xIntercept * scaleX} y2={0} stroke="#000" strokeWidth="5" strokeLinecap="round" />
                                     <line x1={0} y1={-yIntercept * scaleY} x2={xIntercept * scaleX} y2={0} stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />
-
-                                    <circle cx={0} cy={-yIntercept * scaleY} r r="5" fill="#93A3C7" stroke="#000" strokeWidth="2" />
+                                    <circle cx={0} cy={-yIntercept * scaleY} r="5" fill="#93A3C7" stroke="#000" strokeWidth="2" />
                                     <circle cx={xIntercept * scaleX} cy={0} r="5" fill="#93A3C7" stroke="#000" strokeWidth="2" />
-
-                                    {/* Điểm toạ độ người dùng đã ghim */}
                                     {points.map(p => {
                                         const cost = p.x * priceX + p.y * priceY;
                                         const diff = cost - income;
-                                        let statusColor = "#fff";
-                                        let statusMsg = "";
-                                        
-                                        if (Math.abs(diff) < 0.15) { 
-                                            statusColor = "#10b981"; 
-                                            statusMsg = "Hết I";
-                                        } else if (diff < 0) {
-                                            statusColor = "#f59e0b"; 
-                                            statusMsg = `Dư ${Math.abs(diff).toFixed(1)}`;
-                                        } else {
-                                            statusColor = "#ef4444"; 
-                                            statusMsg = `Thiếu ${Math.abs(diff).toFixed(1)}`;
-                                        }
-
+                                        let statusColor = "#fff", statusMsg = "";
+                                        if (Math.abs(diff) < 0.15) { statusColor = "#10b981"; statusMsg = "Hết I"; } 
+                                        else if (diff < 0) { statusColor = "#f59e0b"; statusMsg = `Dư ${Math.abs(diff).toFixed(1)}`; } 
+                                        else { statusColor = "#ef4444"; statusMsg = `Thiếu ${Math.abs(diff).toFixed(1)}`; }
                                         return (
                                             <g key={p.id} onClick={(e) => handleRemovePoint(e, p.id)} className="cursor-pointer group">
                                                 <line x1={p.x * scaleX} y1={0} x2={p.x * scaleX} y2={-p.y * scaleY} stroke="#020C20" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.3" />
@@ -572,8 +365,6 @@
                                             </g>
                                         );
                                     })}
-
-                                    {/* Điểm hover theo vị trí chuột */}
                                     {hoverPoint && (
                                         <g style={{ pointerEvents: 'none' }}>
                                             <line x1={hoverPoint.x * scaleX} y1={0} x2={hoverPoint.x * scaleX} y2={-hoverPoint.y * scaleY} stroke="#ffffff" strokeWidth="1" strokeDasharray="3 3" opacity="0.8" />
@@ -588,7 +379,6 @@
                         </div>
                     </div>
 
-                    {/* Khu vực 3: Góc dưới (Tỷ lệ và các khái niệm) */}
                     <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-[800px] gap-8 flex-shrink-0 z-10 mt-2">
                         <div className="flex items-center gap-4 text-xl font-medium">
                             <div className="flex flex-col items-center text-lg">
@@ -596,16 +386,12 @@
                                 <span className="leading-tight pt-0.5">Py</span>
                             </div>
                             <span>=</span>
-                            <span className="border-[1.5px] border-white rounded-xl px-4 py-1.5 bg-[#060a16] font-mono text-lg min-w-[4.5rem] text-center tracking-wider">
-                                {ratioVal}
-                            </span>
+                            <span className="border-[1.5px] border-white rounded-xl px-4 py-1.5 bg-[#060a16] font-mono text-lg min-w-[4.5rem] text-center tracking-wider">{ratioVal}</span>
                         </div>
-
                         <svg width="40" height="20" viewBox="0 0 60 24" className="hidden md:block">
                             <line x1="0" y1="12" x2="48" y2="12" stroke="white" strokeWidth="2" />
                             <polygon points="48,5 60,12 48,19" fill="white" />
                         </svg>
-
                         <div className="flex flex-col gap-2 text-base tracking-wide text-white/90 border-l-2 md:border-l-0 border-white/20 pl-4 md:pl-0">
                             <div>Tỷ giá tương đối : <span className="font-mono text-white ml-1">{ratioVal}</span></div>
                             <div>Chi phí cơ hội : <span className="font-mono text-white ml-1">{ratioVal}</span></div>
@@ -613,7 +399,6 @@
                         </div>
                     </div>
 
-                    {/* Hộp giải nghĩa được style chuẩn Figma với các biến số nổi bật màu xanh */}
                     <div className="flex items-center justify-center w-[95%] max-w-[600px] border-[1.5px] border-[#D9D9D9] rounded-[16px] px-4 py-3 mt-4 mb-2">
                         <p className="font-['Roboto_Slab'] text-[16px] md:text-[20px] text-white text-center leading-[140%] tracking-normal">
                             Với thu nhập là <span className="text-[#81AAE9] font-medium">{income}</span>, bạn có thể mua tối đa <span className="text-[#81AAE9] font-medium">{Number(xIntercept.toFixed(1))}</span> hộp X hoặc <span className="text-[#81AAE9] font-medium">{Number(yIntercept.toFixed(1))}</span> bánh Y.
@@ -623,7 +408,6 @@
             );
         }
 
-        // Render ứng dụng React vào thẻ div#root
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
